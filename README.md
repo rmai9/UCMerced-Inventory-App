@@ -15,7 +15,8 @@
     - [Date Handling & Templating](#date-handling--templating)
     - [Excel Export](#excel-export)
     - [Excel Import](#excel-import)
-8. [Potential Future Improvements](#potential-future-improvements)
+8. [Deployment](#deployment)
+9. [Potential Future Improvements](#potential-future-improvements)
 
 ---
 
@@ -42,6 +43,7 @@ The UC Merced Inventory Tracker is a web-based application designed to streamlin
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Excel Operations**: SheetJS (XLSX) library
+- **Deployment Transpilation**: Babel Standalone
 
 The application is built as a single-page application (SPA) and runs entirely in the client's browser. It uses an `importmap` in `index.html` to load React dependencies from a CDN, requiring no local build step.
 
@@ -167,6 +169,26 @@ The import logic is the most complex piece of functionality in the application.
 6. **State Update**: Once all sheets are parsed, the application's state is updated:
     - The `masterProductList` is updated with any newly discovered products.
     - The `inventoryData` for the selected building and date is replaced entirely with the newly constructed array of `AreaData`.
+
+## Deployment
+
+This application is configured to run without a traditional build step, which simplifies local development. However, this poses a challenge for deploying to static hosting services like Netlify, Vercel, or GitHub Pages.
+
+### The Challenge: Browser Cannot Read TSX
+
+Browsers do not understand TypeScript (`.ts`) or JSX (`.tsx`) files natively. They only understand JavaScript (`.js`). The "white screen" issue on deployment occurs because the `index.html` file tries to load `index.tsx` directly, which the browser cannot parse, causing a critical error that prevents the React application from starting.
+
+### The Solution: In-Browser Transpilation
+
+To resolve this without setting up a complex build pipeline, this project uses **Babel Standalone**. It's a JavaScript library included in `index.html` that transpiles the `.tsx` code into plain JavaScript directly in the user's browser, on-the-fly.
+
+This is achieved by two small changes in `index.html`:
+1.  Including the Babel Standalone script: `<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>`
+2.  Changing the application's script tag type to `type="text/babel"`.
+
+With this setup, you can deploy the entire source code directory directly to any static hosting provider.
+
+**Note**: While this approach is excellent for simplicity and rapid deployment of small to medium-sized projects, for large-scale production applications, a standard build step (using a tool like Vite or Next.js) is recommended for better performance and optimization. The build step transpiles all code into optimized static assets *before* deployment, so the user's browser doesn't have to do the work.
 
 ## Potential Future Improvements
 
