@@ -26,7 +26,7 @@
     </script>
   <!-- 
     This is the corrected importmap. The conflicting entries have been removed,
-    providing a single, reliable source for React modules from esm.sh.
+    providing a single, unambiguous source for React modules from esm.sh.
   -->
   <script type="importmap">
 {
@@ -42,11 +42,11 @@
   <body class="bg-gray-100 antialiased">
     <div id="root"></div>
     <!-- 
-      This script tag is processed by Babel. 
+      This script tag is now correctly configured to be processed by Babel.
       - `type="text/babel"` tells Babel to handle it.
-      - `type="module"` declares it as a standard ES Module.
+      - `data-type="module"` tells Babel to treat it as a standard ES Module.
       - `data-presets` is essential for transpiling React (JSX) and TypeScript. 
     -->
-    <script type="text/babel" type="module" data-presets="react,typescript" src="/index.tsx"></script>
+    <script type="text/babel" data-type="module" data-presets="react,typescript" src="/index.tsx"></script>
   </body>
 </html>
