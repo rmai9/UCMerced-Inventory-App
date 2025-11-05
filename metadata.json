@@ -1,0 +1,5 @@
+{
+  "name": "UC Merced Inventory Tracker",
+  "description": "An application to track inventory data on a biweekly basis across multiple buildings. Users can search for items, input counts, and view editable sheets organized by storage area within a selected building.",
+  "requestFramePermissions": []
+}
