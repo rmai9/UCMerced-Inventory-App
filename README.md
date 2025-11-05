@@ -182,9 +182,25 @@ Browsers do not understand TypeScript (`.ts`) or JSX (`.tsx`) files natively. Th
 
 To resolve this without setting up a complex build pipeline, this project uses **Babel Standalone**. It's a JavaScript library included in `index.html` that transpiles the `.tsx` code into plain JavaScript directly in the user's browser, on-the-fly.
 
-This is achieved by two small changes in `index.html`:
-1.  Including the Babel Standalone script: `<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>`
-2.  Changing the application's script tag type to `type="text/babel"`.
+This is achieved by making sure the application's main script tag in `index.html` is configured correctly:
+
+```html
+<!-- 1. Include the Babel Standalone script itself -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- 2. Configure the application script tag correctly -->
+<script 
+  type="text/babel" 
+  data-presets="react,typescript" 
+  data-type="module" 
+  src="/index.tsx">
+</script>
+```
+**Breakdown of the application script tag:**
+- `type="text/babel"`: This tells the browser to ignore this script, and instead lets the Babel library know that it should process it.
+- `data-presets="react,typescript"`: **This is the most critical part.** It tells Babel which transformations to apply. Without this, Babel doesn't know how to handle JSX (`<App />`) or TypeScript syntax, and the app will fail to load.
+- `data-type="module"`: This informs Babel to treat the script as an ES Module, allowing it to correctly handle `import` and `export` statements.
+- `src="/index.tsx"`: The entry point of your application.
 
 With this setup, you can deploy the entire source code directory directly to any static hosting provider.
 

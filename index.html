@@ -36,7 +36,7 @@
 </head>
   <body class="bg-gray-100 antialiased">
     <div id="root"></div>
-    <!-- Changed script type to "text/babel" and added data-type="module" to enable in-browser transpilation -->
-    <script type="text/babel" data-type="module" src="/index.tsx"></script>
+    <!-- This script tag is processed by Babel. 'data-presets' is essential for transpiling React (JSX) and TypeScript. -->
+    <script type="text/babel" data-presets="react,typescript" data-type="module" src="/index.tsx"></script>
   </body>
 </html>
