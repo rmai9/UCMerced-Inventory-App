@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CloseIcon, EmailIcon, ExportIcon } from './icons';
+import { CloseIcon, EmailIcon, ExportIcon } from './icons.tsx';
 
 interface EmailExportModalProps {
   isOpen: boolean;

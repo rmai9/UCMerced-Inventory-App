@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { AreaData, InventoryLineItem, CountUnit } from '../types';
-import InventoryItemRow from './InventoryItemRow';
-import { CalendarIcon, DollarSignIcon } from './icons';
+import { AreaData, InventoryLineItem, CountUnit } from '../types.ts';
+import InventoryItemRow from './InventoryItemRow.tsx';
+import { CalendarIcon, DollarSignIcon } from './icons.tsx';
 
 interface InventorySheetProps {
   areaData: AreaData;

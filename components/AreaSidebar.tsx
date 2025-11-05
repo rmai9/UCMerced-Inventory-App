@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AreaData } from '../types';
-import { EditIcon, PlusIcon, CheckIcon, CloseIcon } from './icons';
+import { AreaData } from '../types.ts';
+import { EditIcon, PlusIcon, CheckIcon, CloseIcon } from './icons.tsx';
 
 interface AreaSidebarProps {
   areas: AreaData[];

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Product } from '../types';
-import { SearchIcon, PlusIcon } from './icons';
+import { Product } from '../types.ts';
+import { SearchIcon, PlusIcon } from './icons.tsx';
 
 interface SearchBarProps {
   masterProductList: Product[];

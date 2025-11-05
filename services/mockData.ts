@@ -1,4 +1,4 @@
-import { Product, AreaData, CountUnit, InventoryLineItem, Building, InventoryData } from '../types';
+import { Product, AreaData, CountUnit, InventoryLineItem, Building, InventoryData } from '../types.ts';
 
 /**
  * MASTER_PRODUCT_LIST

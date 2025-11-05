@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Product } from '../types';
-import { CloseIcon, PlusIcon } from './icons';
+import { Product } from '../types.ts';
+import { CloseIcon, PlusIcon } from './icons.tsx';
 
 interface ProductModalProps {
   isOpen: boolean;

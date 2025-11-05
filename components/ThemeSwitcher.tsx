@@ -1,5 +1,5 @@
 import React from 'react';
-import { themes, Theme } from '../utils/themes';
+import { themes, Theme } from '../utils/themes.ts';
 
 interface ThemeSwitcherProps {
   activeTheme: string;

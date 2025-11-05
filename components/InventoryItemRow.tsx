@@ -1,5 +1,5 @@
 import React from 'react';
-import { InventoryLineItem, CountUnit } from '../types';
+import { InventoryLineItem, CountUnit } from '../types.ts';
 
 interface InventoryItemRowProps {
   item: InventoryLineItem;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Product } from '../types';
-import { EditIcon, TrashIcon, SearchIcon } from './icons';
+import { Product } from '../types.ts';
+import { EditIcon, TrashIcon, SearchIcon } from './icons.tsx';
 
 interface ManageProductsProps {
   masterProductList: Product[];

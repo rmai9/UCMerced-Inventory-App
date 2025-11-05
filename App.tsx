@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { AreaData, Product, InventoryLineItem, CountUnit, InventoryData } from './types';
-import { INITIAL_INVENTORY_DATA, MASTER_PRODUCT_LIST, BUILDINGS } from './services/mockData';
-import InventorySheet from './components/InventorySheet';
-import SearchBar from './components/SearchBar';
-import AreaSidebar from './components/AreaSidebar';
-import ProductModal from './components/AddProductModal';
-import EmailExportModal from './components/EmailExportModal';
-import ManageProducts from './components/ManageProducts';
-import { PlusIcon, ExportIcon, CalendarIcon, ImportIcon, BriefcaseIcon } from './components/icons';
-import ThemeSwitcher from './components/ThemeSwitcher';
-import { themes } from './utils/themes';
+import { AreaData, Product, InventoryLineItem, CountUnit, InventoryData } from './types.ts';
+import { INITIAL_INVENTORY_DATA, MASTER_PRODUCT_LIST, BUILDINGS } from './services/mockData.ts';
+import InventorySheet from './components/InventorySheet.tsx';
+import SearchBar from './components/SearchBar.tsx';
+import AreaSidebar from './components/AreaSidebar.tsx';
+import ProductModal from './components/AddProductModal.tsx';
+import EmailExportModal from './components/EmailExportModal.tsx';
+import ManageProducts from './components/ManageProducts.tsx';
+import { PlusIcon, ExportIcon, CalendarIcon, ImportIcon, BriefcaseIcon } from './components/icons.tsx';
+import ThemeSwitcher from './components/ThemeSwitcher.tsx';
+import { themes } from './utils/themes.ts';
 
 // Type alias for the main application views
 type View = 'inventory' | 'manageProducts';
