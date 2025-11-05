@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AreaData, InventoryLineItem, CountUnit } from '../types';
 import InventoryItemRow from './InventoryItemRow';
 import { CalendarIcon, DollarSignIcon } from './icons';
@@ -9,18 +9,28 @@ interface InventorySheetProps {
   onItemUpdate: (itemId: string, updatedFields: Partial<Omit<InventoryLineItem, 'id'>>) => void;
 }
 
+/**
+ * Displays a complete inventory sheet for a single storage area.
+ * It includes a header with the area name and total value, and a table/list of inventory items.
+ */
 const InventorySheet: React.FC<InventorySheetProps> = ({ areaData, displayDate, onItemUpdate }) => {
-  const areaTotalPrice = areaData.items.reduce((total, item) => {
-    const itemPrice = item.countUnit === CountUnit.Case ? item.casePrice : item.eachPrice;
-    return total + item.count * itemPrice;
-  }, 0);
+  // Memoize the total price calculation for the area.
+  // This prevents recalculating on every render, only updating when the items themselves change.
+  const areaTotalPrice = useMemo(() => {
+    return areaData.items.reduce((total, item) => {
+      const itemPrice = item.countUnit === CountUnit.Case ? item.casePrice : item.eachPrice;
+      return total + item.count * itemPrice;
+    }, 0);
+  }, [areaData.items]);
 
+  // Format the date string for display in a more readable format.
   const formattedDate = new Date(`${displayDate}T00:00:00`).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
-
+  
+  // Helper to format numbers as USD currency.
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   };
@@ -49,6 +59,7 @@ const InventorySheet: React.FC<InventorySheetProps> = ({ areaData, displayDate, 
         
         {areaData.items.length > 0 ? (
           <div className="md:table w-full border-collapse">
+              {/* Desktop Table Header */}
               <div className="hidden md:table-header-group">
                   <div className="table-row">
                       <th className="table-cell text-left text-sm font-semibold text-gray-500 uppercase tracking-wider px-6 py-4 bg-gray-50 border-b-2 border-gray-200">Company</th>
@@ -64,6 +75,7 @@ const InventorySheet: React.FC<InventorySheetProps> = ({ areaData, displayDate, 
                       <th className="table-cell text-left text-sm font-semibold text-gray-500 uppercase tracking-wider px-6 py-4 bg-gray-50 border-b-2 border-gray-200">Count as</th>
                   </div>
               </div>
+              {/* Both Mobile (divs) and Desktop (table-row-group) items */}
               <div className="md:table-row-group">
                   {areaData.items.map(item => (
                       <InventoryItemRow

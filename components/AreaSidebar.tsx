@@ -10,22 +10,31 @@ interface AreaSidebarProps {
   onUpdateAreaName: (id: string, newName: string) => void;
 }
 
+/**
+ * A sidebar component that lists storage areas for the selected date.
+ * It allows for selecting, adding, and renaming areas.
+ */
 const AreaSidebar: React.FC<AreaSidebarProps> = ({ areas, activeAreaId, onSelectArea, onAddArea, onUpdateAreaName }) => {
+  // State to manage the UI for adding a new area.
   const [isAdding, setIsAdding] = useState(false);
   const [newAreaName, setNewAreaName] = useState('');
+  
+  // State to manage the UI for editing an existing area's name.
   const [editingAreaId, setEditingAreaId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Effect to automatically focus the input field when adding or editing an area.
   useEffect(() => {
-    if (isAdding && inputRef.current) {
-      inputRef.current.focus();
-    }
-    if (editingAreaId && inputRef.current) {
+    if ((isAdding || editingAreaId) && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isAdding, editingAreaId]);
 
+  /**
+   * Handles the submission of a new area.
+   */
   const handleAddArea = () => {
     if (newAreaName.trim()) {
       onAddArea(newAreaName.trim());
@@ -34,6 +43,9 @@ const AreaSidebar: React.FC<AreaSidebarProps> = ({ areas, activeAreaId, onSelect
     }
   };
 
+  /**
+   * Handles saving the updated name of an area.
+   */
   const handleUpdateName = () => {
     if (editingAreaId && editingName.trim()) {
       onUpdateAreaName(editingAreaId, editingName.trim());
@@ -42,6 +54,10 @@ const AreaSidebar: React.FC<AreaSidebarProps> = ({ areas, activeAreaId, onSelect
     setEditingName('');
   };
 
+  /**
+   * Sets the component into editing mode for a specific area.
+   * @param area The area to be edited.
+   */
   const startEditing = (area: AreaData) => {
     setEditingAreaId(area.id);
     setEditingName(area.name);
@@ -54,6 +70,7 @@ const AreaSidebar: React.FC<AreaSidebarProps> = ({ areas, activeAreaId, onSelect
         {areas.map(area => (
           <div key={area.id} className="group relative">
             {editingAreaId === area.id ? (
+              // Render input form when in editing mode for this area
               <div className="flex items-center gap-2">
                 <input
                   ref={inputRef}
@@ -68,17 +85,20 @@ const AreaSidebar: React.FC<AreaSidebarProps> = ({ areas, activeAreaId, onSelect
                 <button onClick={() => setEditingAreaId(null)} className="p-2 text-red-600 hover:bg-red-100 rounded-full"><CloseIcon className="w-5 h-5"/></button>
               </div>
             ) : (
+              // Render standard area button
               <button
                 onClick={() => onSelectArea(area.id)}
                 className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 flex justify-between items-center ${
                   activeAreaId === area.id
                     ? 'bg-secondary text-secondary-text shadow'
+                    // Apply hover styles for non-active items
                     : 'bg-white text-gray-700 hover:bg-light hover:text-dark'
                 }`}
               >
                 {area.name}
                 <button 
                   onClick={(e) => { e.stopPropagation(); startEditing(area); }}
+                  // Edit icon is subtle, appears on group hover
                   className="opacity-40 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 rounded-full hover:bg-white/30"
                   aria-label={`Edit name for ${area.name}`}
                 >
@@ -89,6 +109,7 @@ const AreaSidebar: React.FC<AreaSidebarProps> = ({ areas, activeAreaId, onSelect
           </div>
         ))}
         {isAdding && (
+          // Render input form for adding a new area
           <div className="flex items-center gap-2 mt-2">
             <input
               ref={inputRef}

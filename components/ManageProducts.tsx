@@ -8,9 +8,16 @@ interface ManageProductsProps {
   onDeleteProduct: (productId: string) => void;
 }
 
+/**
+ * A view component for managing the master list of all products.
+ * It provides functionality to search, view, edit, and delete products.
+ */
 const ManageProducts: React.FC<ManageProductsProps> = ({ masterProductList, onEditProduct, onDeleteProduct }) => {
+  // State for the search input value.
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Memoize the filtered list of products.
+  // The filter logic runs only when the search term or the master list changes.
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return masterProductList;
     const lowercasedTerm = searchTerm.toLowerCase();
@@ -22,6 +29,7 @@ const ManageProducts: React.FC<ManageProductsProps> = ({ masterProductList, onEd
     );
   }, [searchTerm, masterProductList]);
 
+  // Helper to format numbers as USD currency.
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   };

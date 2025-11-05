@@ -11,24 +11,50 @@ import { PlusIcon, ExportIcon, CalendarIcon, ImportIcon, BriefcaseIcon } from '.
 import ThemeSwitcher from './components/ThemeSwitcher';
 import { themes } from './utils/themes';
 
-declare var XLSX: any;
-
-const getTodayDateString = () => new Date().toISOString().slice(0, 10);
-
+// Type alias for the main application views
 type View = 'inventory' | 'manageProducts';
 
+// XLSX is expected to be available globally from a script tag in index.html
+declare var XLSX: any;
+
+/**
+ * A helper function to get the current date as a string in 'YYYY-MM-DD' format.
+ * This is used to key inventory data by date and set the initial selected date.
+ * Ensures timezone-safe date retrieval based on user's local time.
+ * @returns The formatted date string.
+ */
+const getTodayDateString = () => {
+  const today = new Date();
+  // Use timezone offset to prevent UTC conversion from changing the date, ensuring consistency.
+  const offset = today.getTimezoneOffset();
+  const todayLocal = new Date(today.getTime() - (offset*60*1000));
+  return todayLocal.toISOString().split('T')[0];
+};
+
+/**
+ * The root component of the application.
+ * Manages all application state and orchestrates interactions between child components.
+ */
 const App: React.FC = () => {
+  // === STATE MANAGEMENT ===
+
+  // Main inventory data, structured by building, then date. Loaded from localStorage or initial mock data.
   const [inventoryData, setInventoryData] = useState<InventoryData>(() => {
     const savedData = localStorage.getItem('inventoryData');
     return savedData ? JSON.parse(savedData) : INITIAL_INVENTORY_DATA;
   });
+
+  // Master list of all available products. Loaded from localStorage or initial mock data.
   const [masterProductList, setMasterProductList] = useState<Product[]>(() => {
     const savedList = localStorage.getItem('masterProductList');
     return savedList ? JSON.parse(savedList) : MASTER_PRODUCT_LIST;
   });
   
+  // The currently selected building ID.
   const [activeBuildingId, setActiveBuildingId] = useState<string>(BUILDINGS[0].id);
+  // The currently selected date for viewing/editing inventory.
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  // The currently selected storage area ID within the selected building and date.
   const [activeAreaId, setActiveAreaId] = useState<string>(() => {
     const initialBuildingId = BUILDINGS[0].id;
     const initialDate = getTodayDateString();
@@ -36,20 +62,28 @@ const App: React.FC = () => {
     return initialAreas[0]?.id || '';
   });
 
+  // State for modal visibility.
   const [isProductModalOpen, setProductModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+
+  // State for UI theme and current view (inventory vs. product management).
   const [theme, setTheme] = useState<string>(() => localStorage.getItem('inventory-theme') || 'uc-merced');
   const [currentView, setCurrentView] = useState<View>('inventory');
 
+  // === EFFECTS ===
+
+  // Persist inventory data to localStorage whenever it changes.
   useEffect(() => {
     localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
   }, [inventoryData]);
 
+  // Persist master product list to localStorage whenever it changes.
   useEffect(() => {
     localStorage.setItem('masterProductList', JSON.stringify(masterProductList));
   }, [masterProductList]);
 
+  // Apply CSS variables for the selected theme and persist the theme choice.
   useEffect(() => {
     const activeTheme = themes[theme];
     if (activeTheme) {
@@ -61,11 +95,9 @@ const App: React.FC = () => {
         localStorage.setItem('inventory-theme', theme);
     }
   }, [theme]);
-
-  const areasForSelectedDate = useMemo(() => {
-    return inventoryData[activeBuildingId]?.[selectedDate] || [];
-  }, [inventoryData, activeBuildingId, selectedDate]);
-
+  
+  // Automatically create a new inventory sheet for a selected date if it doesn't exist.
+  // It uses the most recent existing inventory for that building as a template (clearing the counts).
   useEffect(() => {
     const buildingInventory = inventoryData[activeBuildingId];
     if (buildingInventory && !buildingInventory[selectedDate]) {
@@ -73,6 +105,7 @@ const App: React.FC = () => {
       const mostRecentDate = availableDates[0];
       
       if (mostRecentDate) {
+        // Create a new sheet by copying the structure and zeroing out item counts.
         const templateAreas = buildingInventory[mostRecentDate];
         const newAreasForDate = templateAreas.map(area => ({
           ...area,
@@ -93,17 +126,32 @@ const App: React.FC = () => {
     }
   }, [activeBuildingId, selectedDate, inventoryData]);
 
+  // Memoized calculation to get the areas for the currently selected building and date.
+  const areasForSelectedDate = useMemo(() => {
+    return inventoryData[activeBuildingId]?.[selectedDate] || [];
+  }, [inventoryData, activeBuildingId, selectedDate]);
 
+  // Effect to ensure an active area is always selected. If the current activeAreaId is not
+  // valid for the selected context (e.g., date changed), it defaults to the first available area.
   useEffect(() => {
     if (!areasForSelectedDate.find(area => area.id === activeAreaId)) {
       setActiveAreaId(areasForSelectedDate[0]?.id || '');
     }
   }, [areasForSelectedDate, activeAreaId]);
 
+  // Memoized calculation to find the currently active area object.
   const activeArea = useMemo(() => {
     return areasForSelectedDate.find(area => area.id === activeAreaId);
   }, [areasForSelectedDate, activeAreaId]);
 
+
+  // === DATA MANIPULATION HANDLERS ===
+
+  /**
+   * A generic helper function to update inventory state for the current building/date context.
+   * This avoids repetitive state update logic in other handlers.
+   * @param updater A function that receives the current areas and returns the updated areas.
+   */
   const handleStateUpdateForDate = (updater: (currentAreas: AreaData[]) => AreaData[]) => {
     setInventoryData(prevData => {
       const currentBuildingData = prevData[activeBuildingId] || {};
@@ -119,6 +167,9 @@ const App: React.FC = () => {
     });
   };
 
+  /**
+   * Updates a specific field of an inventory item (e.g., its count or count unit).
+   */
   const handleItemUpdate = (itemId: string, updatedFields: Partial<Omit<InventoryLineItem, 'id'>>) => {
     handleStateUpdateForDate(currentAreas => 
       currentAreas.map(area => {
@@ -135,6 +186,9 @@ const App: React.FC = () => {
     );
   };
 
+  /**
+   * Adds a new product from the master list to the active inventory sheet.
+   */
   const handleAddItemToSheet = (product: Product) => {
     const newItem: InventoryLineItem = { ...product, count: 0, countUnit: CountUnit.Case };
     handleStateUpdateForDate(currentAreas => 
@@ -147,15 +201,25 @@ const App: React.FC = () => {
     );
   };
 
+  /**
+   * Adds a completely new product to the master product list.
+   */
   const handleAddProductToMasterList = (newProduct: Omit<Product, 'id'>) => {
     const productWithId: Product = { ...newProduct, id: `prod-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` };
     setMasterProductList(prevList => [...prevList, productWithId]);
     setProductModalOpen(false);
   };
 
+  /**
+   * Updates an existing product in the master list and propagates those changes
+   * to all instances of that product across all inventory sheets.
+   */
   const handleUpdateMasterProduct = (updatedProduct: Product) => {
     setMasterProductList(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
 
+    // This is a complex update, as product details need to be synced everywhere.
+    // Using a deep copy to avoid mutation issues.
+    // For very large datasets, a more targeted update (e.g., with Immer) could be more performant.
     setInventoryData(prevInventory => {
         const newInventoryData = JSON.parse(JSON.stringify(prevInventory));
         for (const buildingId in newInventoryData) {
@@ -163,6 +227,7 @@ const App: React.FC = () => {
                 newInventoryData[buildingId][date].forEach((area: AreaData) => {
                     area.items = area.items.map((item: InventoryLineItem) => {
                         if (item.id === updatedProduct.id) {
+                            // Keep existing count/unit, but update all other product info.
                             return {
                                 ...updatedProduct,
                                 count: item.count,
@@ -181,11 +246,16 @@ const App: React.FC = () => {
     setProductToEdit(null);
   };
 
+  /**
+   * Deletes a product from the master list and removes it from all inventory sheets.
+   */
   const handleDeleteMasterProduct = (productId: string) => {
     if (!window.confirm("Are you sure you want to delete this product? This action is permanent and will remove the item from all inventory sheets.")) {
         return;
     }
     setMasterProductList(prev => prev.filter(p => p.id !== productId));
+    
+    // Deep copy and filter out the deleted product from all areas.
     setInventoryData(prevInventory => {
         const newInventoryData = JSON.parse(JSON.stringify(prevInventory));
         for (const buildingId in newInventoryData) {
@@ -199,12 +269,18 @@ const App: React.FC = () => {
     });
   };
 
+  /**
+   * Adds a new storage area to the current inventory sheet.
+   */
   const handleAddArea = (name: string) => {
     const newArea: AreaData = { id: `area-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, name, items: [] };
     handleStateUpdateForDate(currentAreas => [...currentAreas, newArea]);
     setActiveAreaId(newArea.id);
   };
 
+  /**
+   * Updates the name of an existing storage area.
+   */
   const handleUpdateAreaName = (areaId: string, newName: string) => {
     handleStateUpdateForDate(currentAreas => 
       currentAreas.map(area =>
@@ -213,6 +289,12 @@ const App: React.FC = () => {
     );
   };
   
+  // === IMPORT/EXPORT LOGIC ===
+
+  /**
+   * Generates an Excel file from the current inventory data and triggers a download.
+   * Each storage area becomes a separate sheet in the workbook.
+   */
   const generateAndDownloadExcel = (): string => {
     const buildingDataForDate = inventoryData[activeBuildingId]?.[selectedDate];
     if (!buildingDataForDate || buildingDataForDate.length === 0) {
@@ -230,8 +312,10 @@ const App: React.FC = () => {
         });
 
         const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
+        // Set column widths for better readability.
         ws['!cols'] = [ {wch:20}, {wch:20}, {wch:40}, {wch:15}, {wch:10}, {wch:15}, {wch:12}, {wch:12}, {wch:10}, {wch:12}, {wch:10} ];
         const currencyFormat = '$#,##0.00';
+        // Apply currency formatting to relevant cells.
         data.forEach((row, rowIndex) => {
             const rowNum = rowIndex + 2;
             [6, 7, 9].forEach(colIndex => {
@@ -239,7 +323,7 @@ const App: React.FC = () => {
                 if(ws[cellAddress]) ws[cellAddress].z = currencyFormat;
             });
         });
-        XLSX.utils.book_append_sheet(wb, ws, area.name.substring(0, 31));
+        XLSX.utils.book_append_sheet(wb, ws, area.name.substring(0, 31)); // Sheet names have a 31-char limit.
     });
 
     const buildingName = BUILDINGS.find(b => b.id === activeBuildingId)?.name || 'Inventory';
@@ -248,6 +332,10 @@ const App: React.FC = () => {
     return fileName;
   };
 
+  /**
+   * Handles the file input change event to import an Excel inventory file.
+   * This function is complex, involving several steps to parse the file correctly.
+   */
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -258,6 +346,7 @@ const App: React.FC = () => {
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
         
+        // 1. Find the "Totals" sheet to determine the correct order of storage areas.
         const totalsSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('total'));
         if (!totalsSheetName) {
             alert("Could not find a 'Totals' sheet in the Excel file to determine area order.");
@@ -282,6 +371,7 @@ const App: React.FC = () => {
             .map(row => row[0])
             .filter(name => name && name.trim() !== '' && name.toLowerCase() !== 'ending inventory');
 
+        // 2. Prepare new data structures to hold imported data.
         let newMasterList = [...masterProductList];
         const newInventoryAreasMap = new Map<string, AreaData>();
         areaNamesInOrder.forEach((name, index) => {
@@ -292,6 +382,7 @@ const App: React.FC = () => {
             });
         });
 
+        // 3. Iterate through each data sheet (not the "Totals" sheet).
         const areaNamesInOrderLowerCase = areaNamesInOrder.map(n => n.toLowerCase());
         const dataSheetNames = workbook.SheetNames.filter(name => !name.toLowerCase().includes('total'));
 
@@ -299,6 +390,7 @@ const App: React.FC = () => {
             const sheet = workbook.Sheets[sheetName];
             const sheetJson = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as any[][];
 
+            // 3a. Find the area name within the sheet, as it might just be in a cell.
             let sheetAreaName: string | null = null;
             for(let i=0; i < 5 && i < sheetJson.length; i++) {
                 const potentialName = sheetJson[i][0]?.toString();
@@ -317,6 +409,7 @@ const App: React.FC = () => {
             const currentArea = newInventoryAreasMap.get(sheetAreaName);
             if (!currentArea) continue;
 
+            // 3b. Find the header row to start parsing items.
             let itemStartIndex = sheetJson.findIndex(row => row[0]?.toString().toLowerCase() === 'company');
             if (itemStartIndex === -1) {
                 console.warn(`Could not find item header in sheet "${sheetName}". Skipping items.`);
@@ -330,15 +423,15 @@ const App: React.FC = () => {
                 return Number(val.replace(/[^0-9.-]+/g, "")) || 0;
             };
 
+            // 3c. Parse each row into an inventory item.
             for (let i = itemStartIndex; i < sheetJson.length; i++) {
                 const row = sheetJson[i];
-                if (row.length < 3 || row[0]?.toString().toLowerCase().startsWith('total:')) {
-                    continue;
-                }
+                if (row.length < 3 || row[0]?.toString().toLowerCase().startsWith('total:')) continue;
                 
                 const [company, brand, description, itemNum, caseQty, pkg, casePrice, eaPrice, count, , countAs] = row;
                 if (!itemNum || !description) continue;
                 
+                // If product doesn't exist in master list, create it.
                 let product = newMasterList.find(p => p.sku === itemNum.toString());
                 if (!product) {
                     const casePriceNum = parseCurrency(casePrice);
@@ -360,6 +453,7 @@ const App: React.FC = () => {
                     product = newProduct;
                 }
 
+                // Create the inventory item and add it to the correct area.
                 const inventoryItem: InventoryLineItem = {
                     ...product,
                     count: Number(count) || 0,
@@ -369,6 +463,7 @@ const App: React.FC = () => {
             }
         }
 
+        // 4. Update the application state with the newly parsed data.
         const newInventoryAreas = Array.from(newInventoryAreasMap.values());
 
         if (newInventoryAreas.length === 0 || newInventoryAreas.every(area => area.items.length === 0)) {
@@ -392,9 +487,12 @@ const App: React.FC = () => {
     };
     reader.readAsBinaryString(file);
     
+    // Reset file input to allow re-uploading the same file.
     event.target.value = '';
   };
 
+
+  // === RENDER ===
   return (
     <>
       <div className="min-h-screen bg-gray-100 font-sans flex flex-col">

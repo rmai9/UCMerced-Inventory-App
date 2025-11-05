@@ -6,6 +6,10 @@ interface ThemeSwitcherProps {
   setTheme: (themeKey: string) => void;
 }
 
+/**
+ * A component that displays a list of available color themes
+ * and allows the user to switch between them.
+ */
 const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ activeTheme, setTheme }) => {
   return (
     <div className="bg-white p-4 rounded-xl shadow-lg">
@@ -20,11 +24,13 @@ const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ activeTheme, setTheme }) 
                         ${activeTheme === key ? 'border-secondary shadow-md bg-light' : 'border-transparent hover:border-gray-300'}
                     `}
                     aria-label={`Switch to ${theme.name} theme`}
+                    aria-pressed={activeTheme === key}
                 >
                     <div className="flex items-center gap-3">
                         <div 
                             className="w-8 h-8 rounded-full flex overflow-hidden border-2 border-white/50 shadow-inner flex-shrink-0"
                             style={{ background: `linear-gradient(to bottom right, ${theme.swatch.primary}, ${theme.swatch.secondary})` }}
+                            aria-hidden="true" // Decorative element
                         />
                         <span className={`text-sm font-medium ${activeTheme === key ? 'text-dark' : 'text-gray-600'}`}>
                             {theme.name}

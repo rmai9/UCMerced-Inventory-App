@@ -1,5 +1,10 @@
 import { Product, AreaData, CountUnit, InventoryLineItem, Building, InventoryData } from '../types';
 
+/**
+ * MASTER_PRODUCT_LIST
+ * A comprehensive list of all possible products that can be included in an inventory.
+ * This serves as the single source of truth for product information.
+ */
 export const MASTER_PRODUCT_LIST: Product[] = [
   { id: 'prod-001', supplier: 'Sysco', brand: 'Prime Meats', productName: 'Ribeye Steak', sku: 'SKU-5832', packageSize: '12 x 16oz', productsPerCase: 12, caseWeight: 20, casePrice: 240.00, eachPrice: 20.00 },
   { id: 'prod-002', supplier: 'Sysco', brand: 'Portico', productName: 'Salmon Fillet', sku: 'SKU-9543', packageSize: '20 x 8oz', productsPerCase: 20, caseWeight: 15, casePrice: 180.00, eachPrice: 9.00 },
@@ -11,26 +16,48 @@ export const MASTER_PRODUCT_LIST: Product[] = [
   { id: 'prod-008', supplier: 'Sysco', brand: 'Arrezzio', productName: 'Pasta - Spaghetti', sku: 'SKU-5566', packageSize: '20 x 1lb', productsPerCase: 20, caseWeight: 20, casePrice: 40.00, eachPrice: 2.00 },
 ];
 
+/**
+ * BUILDINGS
+ * A list of all buildings where inventory can be tracked.
+ */
 export const BUILDINGS: Building[] = [
   { id: 'bldg-1', name: 'Yablokoff-Wallace Dining Center' },
   { id: 'bldg-2', name: 'Pavilion' },
   { id: 'bldg-3', name: 'Catering' },
 ];
 
+/**
+ * A helper function to create a new inventory line item from a master product,
+ * initializing its count to zero.
+ * @param product The product from the master list.
+ * @returns An InventoryLineItem object ready for an inventory sheet.
+ */
 const createInitialItem = (product: Product): InventoryLineItem => ({
   ...product,
   count: 0,
   countUnit: CountUnit.Case,
 });
 
+/**
+ * A helper function to get the current date as a string in 'YYYY-MM-DD' format.
+ * This is used to key inventory data by date.
+ * Ensures timezone-safe date retrieval based on user's local time.
+ * @returns The formatted date string.
+ */
 const getTodayDateString = () => {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    // Use timezone offset to prevent UTC conversion from changing the date
+    const offset = today.getTimezoneOffset();
+    const todayLocal = new Date(today.getTime() - (offset*60*1000));
+    return todayLocal.toISOString().split('T')[0];
 }
 
+/**
+ * INITIAL_INVENTORY_DATA
+ * The default state of the inventory data for the application.
+ * This provides a starting point for new users or when local storage is empty.
+ * It's structured by building ID, then by today's date, containing an array of storage areas.
+ */
 export const INITIAL_INVENTORY_DATA: InventoryData = {
   [BUILDINGS[0].id]: {
     [getTodayDateString()]: [ // Yablokoff-Wallace

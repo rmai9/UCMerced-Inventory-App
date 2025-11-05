@@ -10,6 +10,9 @@ interface ProductModalProps {
   productToEdit: Product | null;
 }
 
+/**
+ * A generic input field component for the modal form.
+ */
 const InputField = ({ label, id, ...props }) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -17,6 +20,7 @@ const InputField = ({ label, id, ...props }) => (
     </div>
 );
 
+// Initial empty state for the product form.
 const emptyProductState = {
   supplier: '',
   brand: '',
@@ -27,11 +31,19 @@ const emptyProductState = {
   casePrice: 0,
 };
 
+/**
+ * A modal component for adding a new product to the master list or editing an existing one.
+ * The behavior (add vs. edit) is determined by the `productToEdit` prop.
+ */
 const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onAddProduct, onUpdateProduct, productToEdit }) => {
+  // State to hold the form data for the product.
   const [product, setProduct] = useState(emptyProductState);
 
+  // Determines if the modal is in "editing" mode.
   const isEditing = useMemo(() => !!productToEdit, [productToEdit]);
 
+  // Effect to populate the form with product data when editing, or reset it when adding.
+  // This runs when the modal is opened or the product to edit changes.
   useEffect(() => {
     if (isOpen && productToEdit) {
       setProduct({
@@ -44,10 +56,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onAddProdu
         casePrice: productToEdit.casePrice,
       });
     } else {
+      // Reset to empty state if not editing or modal is closed.
       setProduct(emptyProductState);
     }
   }, [isOpen, productToEdit]);
 
+  // Memoized calculation for the 'each price' based on case price and quantity.
   const eachPrice = useMemo(() => {
     const casePrice = Number(product.casePrice) || 0;
     const perCase = Number(product.productsPerCase) || 1;
@@ -57,12 +71,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onAddProdu
     return '0.00';
   }, [product.casePrice, product.productsPerCase]);
 
+  /**
+   * Handles changes to form input fields, updating the component's state.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const isNumber = ['productsPerCase', 'casePrice'].includes(name);
     setProduct(prev => ({ ...prev, [name]: isNumber ? Number(value) : value }));
   };
 
+  /**
+   * Handles form submission, calling either the onUpdateProduct or onAddProduct prop.
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isEditing && productToEdit) {

@@ -6,6 +6,9 @@ interface InventoryItemRowProps {
   onUpdate: (updatedFields: Partial<Omit<InventoryLineItem, 'id'>>) => void;
 }
 
+/**
+ * A toggle component to switch between 'Case' and 'Each' count units.
+ */
 const UnitToggle: React.FC<{ value: CountUnit; onChange: (newValue: CountUnit) => void }> = ({ value, onChange }) => (
     <div className="flex items-center bg-gray-200 rounded-full p-1 w-min" role="group">
       <button
@@ -28,11 +31,19 @@ const UnitToggle: React.FC<{ value: CountUnit; onChange: (newValue: CountUnit) =
 );
 
 
+/**
+ * Renders a single inventory item with its details and inputs for count.
+ * This component is responsive:
+ * - On medium screens and up, it renders as a table row (`md:table-row`).
+ * - On smaller screens, it renders as a card (`md:hidden`).
+ */
 const InventoryItemRow: React.FC<InventoryItemRowProps> = ({ item, onUpdate }) => {
+  // Calculate the total price based on the current count and selected unit.
   const totalPrice = item.countUnit === CountUnit.Case
     ? item.count * item.casePrice
     : item.count * item.eachPrice;
 
+  // Helper to format numbers as USD currency.
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   };

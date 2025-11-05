@@ -6,27 +6,41 @@ interface EmailExportModalProps {
   onClose: () => void;
   buildingName: string;
   selectedDate: string;
-  onGenerateAndDownload: () => string; // returns filename
+  onGenerateAndDownload: () => string; // This function is expected to return the filename of the downloaded file.
 }
 
+/**
+ * A modal that provides options for exporting the inventory report.
+ * Users can either download the Excel file directly or open their default
+ * email client with a pre-filled `mailto:` link.
+ */
 const EmailExportModal: React.FC<EmailExportModalProps> = ({ isOpen, onClose, buildingName, selectedDate, onGenerateAndDownload }) => {
   const [email, setEmail] = useState('');
 
+  /**
+   * Handles the "Just Download" action. It triggers the file download and closes the modal.
+   */
   const handleDownloadOnly = () => {
     onGenerateAndDownload();
     onClose();
   };
 
+  /**
+   * Handles the "Email Report" action. It triggers the file download and then
+   * opens a `mailto:` link in the user's default email client.
+   */
   const handleEmail = (e: React.FormEvent) => {
     e.preventDefault();
     const fileName = onGenerateAndDownload();
     
+    // Only proceed if a filename was returned, indicating a successful download.
     if (fileName) {
         const subject = encodeURIComponent(`Inventory Report: ${buildingName} - ${selectedDate}`);
         const body = encodeURIComponent(
             `Hello,\n\nPlease find the inventory report for ${buildingName} from ${selectedDate} attached.\n\n(You will need to manually attach the file named "${fileName}" that was just downloaded to your device.)\n\nThank you.`
         );
         
+        // Open the user's default email client.
         window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     }
     onClose();
