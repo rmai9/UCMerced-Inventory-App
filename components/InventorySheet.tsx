@@ -36,7 +36,7 @@ const InventorySheet: React.FC<InventorySheetProps> = ({ areaData, displayDate, 
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="border-b border-gray-200 pb-4 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
