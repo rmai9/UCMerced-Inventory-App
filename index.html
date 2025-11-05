@@ -25,8 +25,8 @@
       }
     </script>
   <!-- 
-    Cleaned up the importmap to provide a single, reliable source for React modules.
-    This resolves the module loading conflict that caused the white screen on deployment.
+    This is the corrected importmap. The conflicting entries have been removed,
+    providing a single, reliable source for React modules from esm.sh.
   -->
   <script type="importmap">
 {
@@ -41,7 +41,12 @@
 </head>
   <body class="bg-gray-100 antialiased">
     <div id="root"></div>
-    <!-- This script tag is processed by Babel. 'data-presets' is essential for transpiling React (JSX) and TypeScript. -->
-    <script type="text/babel" data-presets="react,typescript" data-type="module" src="/index.tsx"></script>
+    <!-- 
+      This script tag is processed by Babel. 
+      - `type="text/babel"` tells Babel to handle it.
+      - `type="module"` declares it as a standard ES Module.
+      - `data-presets` is essential for transpiling React (JSX) and TypeScript. 
+    -->
+    <script type="text/babel" type="module" data-presets="react,typescript" src="/index.tsx"></script>
   </body>
 </html>
