@@ -24,29 +24,26 @@
         }
       }
     </script>
-  <!-- 
-    This is the corrected importmap. The conflicting entries have been removed,
-    providing a single, unambiguous source for React modules from esm.sh.
+  <!--
+    This importmap tells the browser where to find the React libraries.
+    The 'esm.sh' CDN is used for reliable ES Module support.
   -->
   <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@19.0.0-rc-f994737d14-20240522",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0-rc-f994737d14-20240522/client",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
-  }
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0-rc-f994737d14-20240522/client"  }
 }
 </script>
 </head>
   <body class="bg-gray-100 antialiased">
     <div id="root"></div>
     <!-- 
-      This script tag is now correctly configured to be processed by Babel.
-      - `type="text/babel"` tells Babel to handle it.
-      - `data-type="module"` tells Babel to treat it as a standard ES Module.
-      - `data-presets` is essential for transpiling React (JSX) and TypeScript. 
+      This script tag is processed by Babel.
+      - 'type="text/babel"': Tells Babel to handle this script.
+      - 'data-presets="react,typescript"': Enables JSX and TypeScript transformation.
+      - 'data-type="module"': Crucially, tells Babel to handle ES module 'import' statements.
     -->
-    <script type="text/babel" data-type="module" data-presets="react,typescript" src="/index.tsx"></script>
+    <script type="text/babel" data-presets="react,typescript" data-type="module" src="/index.tsx"></script>
   </body>
 </html>
